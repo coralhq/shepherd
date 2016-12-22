@@ -1,4 +1,3 @@
-from . import helper as h
 from .logging import log
 from .event import from_resource, SUPPORTED_TYPES
 from .config import Config
@@ -14,19 +13,18 @@ def start(c:Config):
     slack = Slack(config=c, log=log)
 
     # create streams
-    # - p = payload
-    # - r = resource
-    # - e = event
     stream = Subject()
     events = (stream
-        .map(loads).filter(lambda p: p['name'] == 'resource.change')
-        .map(lambda p: h.get(p, '.data.resource'))
-            .filter(lambda r: isinstance(r,dict))
-            .filter(lambda r: r['type'] in SUPPORTED_TYPES)
+        .map(loads).filter(lambda p: p.get('name') == 'resource.change')
+        .map(lambda payload: payload.get('data',{}))
+            .filter(lambda data: isinstance(data, dict))
+        .map(lambda data: data.get('resource',{}))
+            .filter(lambda res: isinstance(res,dict))
+            .filter(lambda res: res.get('type') in SUPPORTED_TYPES)
         .map(from_resource)
         .distinct_until_changed())
     slack_events = (events
-        .filter(lambda e: e.type == 'service'))
+        .filter(lambda event: event.type == 'service' and event.state == 'upgraded'))
 
     # subscribe
     async = NewThreadScheduler()
