@@ -1,5 +1,3 @@
-from . import helper as h
-
 SUPPORTED_TYPES = ['host', 'service']
 
 LEVEL_SUCCESS = 'success'
@@ -15,9 +13,11 @@ def from_resource(res):
         event['state'] = res['agentState']
         cls = HostEvent
     elif res['type'] in ['service']:
+        image = res.get('launchConfig',{}).get('imageUuid', '')
+
         event['name'] = res['name']
         event['state'] = res['state']
-        event['image'] = h.get(res, '.launchConfig.imageUuid').replace('docker:', '', 1)
+        event['image'] = image.replace('docker:', '', 1)
         cls = ServiceEvent
 
     return cls(**event)

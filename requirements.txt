@@ -3,4 +3,3 @@ simplejson==3.10.0
 websocket-client==0.40.0
 slacker==0.9.30
 Rx==1.5.7
-pyjq==2.0.0
