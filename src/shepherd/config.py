@@ -50,12 +50,13 @@ class Config(object):
         }
 
     def check(self):
-        errors = []
+        error = False
         for key in self.required.keys():
             val = self.required[key]
             if not val:
                 self.log.error("%s is required" % key)
-        if errors:
+                error = True
+        if error:
             raise Exception("Configuration error")
 
     def info(self):
