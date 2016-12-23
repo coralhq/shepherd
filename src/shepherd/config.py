@@ -14,7 +14,7 @@ class Config(object):
             load_dotenv(dotenv)
 
         # required configs
-        self.RANCHER_SSL = env.get('RANCHER_SSL','').lower() == 'true'
+        self.RANCHER_SSL = env.get('RANCHER_SSL', 'true').lower() == 'true'
         self.RANCHER_ACCESS_KEY = env.get('RANCHER_ACCESS_KEY', None)
         self.RANCHER_SECRET_KEY = env.get('RANCHER_SECRET_KEY', None)
         self.RANCHER_HOST = env.get('RANCHER_HOST', None)
