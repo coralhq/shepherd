@@ -1,14 +1,6 @@
 from shepherd.notifier import Notifier
 from shepherd.event import Event
-from shepherd.event import LEVEL_INFO, LEVEL_SUCCESS, LEVEL_ERROR, LEVEL_WARNING
 from slacker import Slacker
-
-_colors = {
-    LEVEL_INFO: 'default',
-    LEVEL_SUCCESS: 'good',
-    LEVEL_ERROR: 'danger',
-    LEVEL_WARNING: 'warning',
-}
 
 class Slack(Notifier):
     def __init__(self, *args, **kwargs):
@@ -19,7 +11,7 @@ class Slack(Notifier):
 
     def notify(self, event:Event):
         try:
-            attachments = self._attachments_from_event(event)
+            attachments = self._create_attachments(event)
             response = self.slack.chat.post_message(self.channel, '',
                   as_user=True, attachments=attachments)
             if response.body['ok']:
@@ -32,14 +24,28 @@ class Slack(Notifier):
             self.log.error(traceback.format_exc())
             self.log.error(e)
 
-    def _attachments_from_event(self, event:Event):
+    def _create_fields(self, event:Event):
+        meta = event.meta()
+        fields = []
+        for key in meta.keys():
+            val = meta[key]
+            fields += [{
+                "title": key.title(),
+                "value": "`%s`" % val,
+                "short": True
+            }]
+
+        return fields
+
+    def _create_attachments(self, event:Event):
         return [{
-                "fallback": event.plain(),
-                "color": _colors.get(event.severity(), LEVEL_INFO),
+                "fallback": event.description(),
+                "color": event.severity(),
                 "author_name": self.config.SLACK_AUTHOR_NAME,
                 "author_icon": self.config.SLACK_AUTHOR_ICON,
-                "title": event.title().upper(),
-                "text": event.description(),
+                "text": event.summary(),
                 "footer": self.config.SLACK_FOOTER,
-                "footer_icon": self.config.SLACK_FOOTER_ICON
+                "footer_icon": self.config.SLACK_FOOTER_ICON,
+                "mrkdwn_in": ["text", "fields"],
+                "fields": self._create_fields(event)
             }]
