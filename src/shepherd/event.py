@@ -1,10 +1,5 @@
 SUPPORTED_TYPES = ['host', 'service']
 
-LEVEL_SUCCESS = 'success'
-LEVEL_INFO = 'info'
-LEVEL_WARNING = 'warning'
-LEVEL_ERROR = 'error'
-
 def from_resource(res):
     event = {'type': res['type']}
 
@@ -14,7 +9,6 @@ def from_resource(res):
         cls = HostEvent
     elif res['type'] in ['service']:
         image = res.get('launchConfig',{}).get('imageUuid', '')
-
         event['name'] = res['name']
         event['state'] = res['state']
         event['image'] = image.replace('docker:', '', 1)
@@ -39,17 +33,17 @@ class Event(object):
     def __eq__(self, other):
         return self.__dict__ == other
 
-    def plain(self):
-        return "%s: %s %s" % (self.type, self.name, self.state)
-
-    def title(self):
-        return self.name
-
     def description(self):
-        return self.state
+        return "%s %s %s" % (self.type.title(), self.name, self.state)
+
+    def summary(self):
+        return self.description()
+
+    def meta(self):
+        return dict(self)
 
     def severity(self):
-        return LEVEL_INFO
+        return "default"
 
 class ServiceEvent(Event):
     def __init__(self, image=None, **kwargs):
@@ -60,16 +54,21 @@ class ServiceEvent(Event):
         yield from super(ServiceEvent, self).__iter__()
         yield 'image', self.image
 
-    def description(self):
-        return u"{} - {}".format(self.state, self.image)
+    def summary(self):
+        return u"{} {}".format(self.type.title(), self.state)
+
+    def meta(self):
+        return {
+            "name": self.name, "image": self.image
+        }
 
     def severity(self):
-        if self.state == 'upgraded':
-            return LEVEL_SUCCESS
-        elif self.state == 'inactive':
-            return LEVEL_ERROR
+        if self.state in ['upgraded', 'active']:
+            return 'good'
+        elif self.state in ['inactive']:
+            return 'error'
         else:
-            return LEVEL_INFO
+            return 'default'
 
 class HostEvent(Event):
     def __init__(self, **kwargs):
