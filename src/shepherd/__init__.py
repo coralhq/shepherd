@@ -9,8 +9,9 @@ def start(c:Config):
     from rx.subjects import Subject
     from rx.concurrency import NewThreadScheduler
 
-    from .notifier.slack import Slack
+    from .notifier import Slack, Jenkins
     slack = Slack(config=c, log=log)
+    jenkins = Jenkins(config=c, log=log)
 
     # create streams
     stream = Subject()
@@ -25,12 +26,15 @@ def start(c:Config):
         .distinct_until_changed())
     slack_events = (events
         .filter(lambda event: event.type == 'service' and event.state == 'upgraded'))
+    jenkins_events = (events
+        .filter(lambda event: event.type == 'host' and event.state == 'reconnecting'))
 
     # subscribe
     async = NewThreadScheduler()
     subs = []
     subs += [events.subscribe(log.debug)]
     subs += [slack_events.observe_on(async).subscribe(slack.notify)]
+    subs += [jenkins_events.observe_on(async).subscribe(jenkins.notify)]
 
     # connect to websocket
     ws = WebSocketApp(c.RANCHER_WS_URL,

@@ -22,12 +22,17 @@ class Config(object):
         self.RANCHER_PROJECT_NAME = env.get('RANCHER_PROJECT_NAME', self.RANCHER_PROJECT_ID)
         self.SLACK_TOKEN = env.get('SLACK_TOKEN', None)
         self.SLACK_CHANNEL = env.get('SLACK_CHANNEL', None)
+        self.JENKINS_URL = env.get('JENKINS_URL', None)
+        self.JENKINS_JOB_NAME = env.get('JENKINS_JOB_NAME', None)
 
         # optional configs
         self.SLACK_FOOTER = env.get('SLACK_FOOTER', None)
         self.SLACK_FOOTER_ICON = env.get('SLACK_FOOTER_ICON', None)
         self.SLACK_AUTHOR_NAME = env.get('SLACK_AUTHOR_NAME', None)
         self.SLACK_AUTHOR_ICON = env.get('SLACK_AUTHOR_ICON', None)
+        self.JENKINS_USERNAME = env.get('JENKINS_USERNAME', None)
+        self.JENKINS_PASSWORD = env.get('JENKINS_PASSWORD', None)
+        self.JENKINS_JOB_TOKEN = env.get('JENKINS_JOB_TOKEN', None)
 
         # derived configs
         self.RANCHER_PROTOCOL = 'wss' if self.RANCHER_SSL else 'ws'
@@ -47,6 +52,8 @@ class Config(object):
             'RANCHER_PROJECT_ID': self.RANCHER_PROJECT_ID,
             'SLACK_TOKEN': self.SLACK_TOKEN,
             'SLACK_CHANNEL': self.SLACK_CHANNEL,
+            'JENKINS_URL': self.JENKINS_URL,
+            'JENKINS_JOB_NAME': self.JENKINS_JOB_NAME,
         }
 
     def check(self):
